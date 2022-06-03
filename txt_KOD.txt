@@ -1,0 +1,147 @@
+﻿#include <LiquidCrystal.h>
+#include <Keypad.h>
+
+LiquidCrystal lcd(7, 6, 5, 4, 3, 2);
+
+boolean sensorValue = 0;
+const byte     satir       = 4;
+const byte     sutun       = 3;
+
+char tuslar[satir][sutun] = {
+  {'1', '2', '3'},
+  {'4', '5', '6'},
+  {'7', '8', '9'},
+  {'*', '0', '#'}
+};
+
+byte satirPINleri[satir] = {41, 43, 45, 47};
+
+byte sutunPINleri[sutun] = {26, 24, 22};
+
+char sifre[4] = {'1', '3', '2', '7'};
+
+int sayac = 0;
+
+int sifre_tetik = 0;
+
+int dongu_sayac = 0;
+
+Keypad keypad = Keypad( makeKeymap(tuslar), satirPINleri, sutunPINleri, satir, sutun );
+
+void setup() {
+  lcd.begin(16, 2);
+  pinMode(A2, OUTPUT);
+  pinMode(A3, OUTPUT);
+  delay(200);
+  pinMode(A0, INPUT_PULLUP);
+  pinMode(1, OUTPUT);
+  delay(200);
+  pinMode(8, INPUT);
+  pinMode(9, OUTPUT);
+  delay(10);
+  pinMode(A1, INPUT);
+  analogReference(INTERNAL1V1);
+  lcd.setCursor(2, 0);
+  lcd.print("HOSGELDINIZ");
+  delay(200);
+  lcd.clear();
+  lcd.setCursor(5, 0);
+  lcd.print("LUTFEN");
+  lcd.setCursor(1, 1);
+  lcd.print("SIFREYI GIRINIZ");
+  delay(200);
+  lcd.clear();
+}
+
+char anahtar0;
+
+int keypad_tetik = 1;
+
+void loop() {
+  if (keypad_tetik == 1)
+  {
+    anahtar0 = keypad.getKey();
+    if (anahtar0 == sifre[dongu_sayac])
+    {
+      lcd.print(anahtar0);
+      sayac++;
+    }
+    else if (anahtar0 == '1' || anahtar0 == '2' || anahtar0 == '3' || anahtar0 == '4' || anahtar0 == '5' || anahtar0 == '6' || anahtar0 == '7' || anahtar0 == '8' || anahtar0 == '9' || anahtar0 == '*' || anahtar0 == '0' || anahtar0 == '#')
+    {
+      lcd.print(anahtar0);
+    }
+    else if (anahtar0 != '1' && anahtar0 != '2' && anahtar0 != '3' && anahtar0 != '4' && anahtar0 != '5' && anahtar0 != '6' && anahtar0 != '7' && anahtar0 != '8' && anahtar0 != '9' && anahtar0 != '*' && anahtar0 != '0' && anahtar0 != '#')
+    {
+      dongu_sayac--;
+    }
+    dongu_sayac++;
+    if (dongu_sayac == 4 && sayac == 4)
+    {
+      lcd.setCursor(0, 1);
+      lcd.print("SIFRE DOGRU!!");
+      digitalWrite(A2, HIGH);
+      delay(200);
+      digitalWrite(A2, LOW);
+      lcd.clear();
+      sifre_tetik = 1;
+      keypad_tetik = 0;
+    }
+    else if (dongu_sayac == 4 && sayac != 4)
+    {
+      lcd.setCursor(0, 1);
+      lcd.print("SIFRE YANLIS!!");
+      digitalWrite(A3, HIGH);
+      delay(200);
+      digitalWrite(A3, LOW);
+      lcd.clear();
+      dongu_sayac = 0;
+      sayac = 0;
+    }
+  }
+  if (sifre_tetik == 1)
+  {
+    int Flame = digitalRead(A0);
+    if (Flame == HIGH)
+    {
+      digitalWrite(1, HIGH);
+      delay(100);
+    }
+    else
+    {
+      digitalWrite(1, LOW);
+    }
+    sensorValue = digitalRead(8);
+    delay(10);
+    if (sensorValue == 1) {
+      digitalWrite(9, HIGH);
+    }
+    else {
+      digitalWrite(9, LOW);
+    }
+    lcd.setCursor(0, 0);
+    lcd.print("TEMPUTURE IS : \n");
+    lcd.setCursor(0, 1);
+    lcd.print(float(analogRead(A1) * 0.107));
+    lcd.print(" C");
+    delay(300);
+    lcd.clear();
+    if ((analogRead(A1) * 0.107) > 30)
+    {
+      lcd.setCursor(3, 0);
+      lcd.print("SICAKLIK");
+      lcd.setCursor(3, 1);
+      lcd.print("YUKSELDI!!");
+      delay(100);
+      lcd.clear();
+    }
+    else if ((analogRead(A1) * 0.107) < 20)
+    {
+      lcd.setCursor(3, 0);
+      lcd.print("SICAKLIK");
+      lcd.setCursor(3, 1);
+      lcd.print("DUSTU!!");
+      delay(100);
+      lcd.clear();
+    }
+  }
+}
